@@ -1,7 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from .models import Question, Answer, User
+from django.views.decorators.http import require_GET
+from .forms import AskForm, AnswerForm
 
 
 def test(request, *args, **kwargs):
@@ -12,28 +14,32 @@ def void(request):
     raise Http404
 
 
-def new(request, *args, **kwargs):
+@require_GET
+def index(request, *args, **kwargs):
     questions = Question.objects.new()
     limit = request.GET.get('limit', 10)
     page = request.GET.get('page', 1)
     paginator = Paginator(questions, limit)
     paginator.baseurl = '/?page='
     page = paginator.page(page)
-    return render(request, 'qa/new.html', {
+    return render(request, 'index.html', {
+        'title': 'Список вопросов',
         'questions': page.object_list,
         'paginator': paginator,
         'page': page,
     })
 
 
-def popular(request):
+@require_GET
+def popular(request, *args, **kwargs):
     questions = Question.objects.popular()
     limit = request.GET.get('limit', 10)
     page = request.GET.get('page', 1)
     paginator = Paginator(questions, limit)
     paginator.baseurl = '/?page='
     page = paginator.page(page)
-    return render(request, 'qa/popular.html', {
+    return render(request, 'popular.html', {
+        'title': 'Популярные вопросы',
         'questions': page.object_list,
         'paginator': paginator,
         'page': page,
@@ -41,13 +47,35 @@ def popular(request):
 
 
 def question(request, id):
-    try:
-        question = Question.objects.get(id=id)
-    except Question.DoesNotExist:
-        raise Http404
+    question = get_object_or_404(id=id)
+    answers = Answer.objects.filter(question=question).order_by('-added_at')
+    if request.method == "POST":
+        form = AnswerForm(request.POST)
+        if form.is_valid():
+            msg = 'Ваш ответ принят'
+            form.save()
+            url = question.get_url()
+            return HttpResponseRedirect(url)
+    else:
+        form = AnswerForm(initial={'question': question.id})
+        return render(request, 'question.html', {
+            'title': 'Страница вопроса',
+            'question': question,
+            'answers': answers,
+            'form': form
+        })
 
-    answers = Answer.objects.filter(question=question)
-    return render(request, 'qa/question.html', {
-        'question': question,
-        'answers': answers,
+def ask(request):
+    if request.method == "POST":
+        form = AskForm(request.POST)
+        if form.is_valid():
+            form._user = request.user
+            post = form.save()
+            url = post.get_url()
+            return HttpResponseRedirect(url)
+    else:
+        form = AskForm()
+    return render(request, 'ask.html', {
+        'title': 'Задать вопрос',
+        'form': form,
     })
