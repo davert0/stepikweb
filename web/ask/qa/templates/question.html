@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}
+{{ block.super }} Страница вопроса {{ question.id }}{{ page }}
+{% endblock %}
+{% block content %}
+{{ block.super }} 
+{% if question %}
+<div class="question">
+    <h1>Вопрос {{ question.id }}: {{ question.title }}</h1>
+    <h2>Рейтинг: {{ question.rating }}. Автор {{ question.author.username }}. Добавлено {{ question.added_at }}</h2>
+    <p>{{ question.text }}</p>
+</div>
+{% endif %}
+<hr>
+{% if answers %}
+<div class="answers">
+    {% for answer in answers %}
+    <div class="answer">
+        <h3>Ответ {{ answer.id }}: Автор {{ answer.author.username }}</h3>
+        <p>{{ answer.text }}</p>
+    </div>
+    <hr>
+    {% endfor %}
+</div>
+{% else %}
+    <p>В базе данных пока нет ответов на данный вопрос. Будьте первым автором ответа!</p>
+{% endif %}
+{% for e in form.non_field_errors %}
+    <div class="alert alert-danger">{{ e }}</div>
+{% endfor %}
+<form class="form-horizontal" method="POST" action="{{ question.get_url }}">
+    <fieldset>
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="control-group {% if field.errors %}has-error{% endif %}">
+            {% if field.name != 'question' %}
+            <label class="control-label">{{ field.label }}</label>
+            {% endif %}
+            <div class="controls">{{ field }}</div>
+        </div>
+        {% endfor %}
+    </fieldset>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Ответить</button>
+    </div>
+</form>
+{% endblock %}

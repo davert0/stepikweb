@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="utf-8">
+        <title>{% block title %}Вопросы и ответы - {% endblock %}</title>
+        {% block meta %}
+        {% endblock %}
+    </head>
+    <body>
+        {% block content %}
+        <nav class="nagigation">
+            <a href="/ask/">Задать вопрос</a>
+            <a href="/">Новые вопросы</a>
+            <a href="/popular/">Популярные вопросы</a>
+
+        </nav>
+    <h1>{{ title }}</h1>
+    {% endblock %}
+    </body>
+</html>

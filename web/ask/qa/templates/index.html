@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}
+{{ block.super }}Список вопросов. Страница {{ questions.number }}{{ page }}
+{% endblock %}
+{% block content %}
+{{ block.super }} 
+{% if questions %}
+<div class="questions">
+    {% for question in questions %}
+    <div class="question">
+        <h3>Вопрос {{ question.id }}: {{ question.title }}</h3>
+        <h5>Рейтинг: {{ question.rating }}. Автор {{ question.author.username }}. Добавлен {{ question.added_at }}</h5>
+        <p>{{ question.text }}</p>
+        {# backreference for ForeignKey #}
+        {% with answers=question.answer_set.count %}
+        <p><a href="/question/{{ question.id }}/">
+            Ответов: {{ answers }}</a>
+        </p>
+        {% endwith %}
+    </div>
+    <hr>
+    {% endfor %}
+</div>
+{% else %}
+<p>Пока нет вопросов в базе данных. Будьте первым автором!</p>
+{% endif %}
+<div class="pagination">
+    <span class="step-links">
+        {% if questions.has_previous %}
+        <a href="?page={{ questions.previous_page_number }}&limit={{ limit }}"><<</a>
+        {% endif %}
+        <span class="current">
+            Страница {{ questions.number }} из {{ questions.paginator.num_pages }}
+        </span>
+        {% if questions.has_next %}
+        <a href="?page={{ questions.next_page_number }}&limit={{ limit }}">>></a>
+        {% endif %}
+    </span>
+</div>
+{% endblock %}
