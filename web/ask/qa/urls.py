@@ -10,4 +10,7 @@ urlpatterns = [
     url(r'^question/(?P<question_id>[0-9]+)/$', views.question, name='question'),
     url(r'^ask/.*$', views.ask, name='ask'),
     url(r'^popular/.*$', views.popular, name='popular'),
+    url(r'^login/.*$', views.log_in, name='login'),
+    url(r'^logout/.*$', views.log_out, name='logout'),
+    url(r'^signup/.*$', views.signup, name='signup'),
 	]

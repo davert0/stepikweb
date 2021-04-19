@@ -5,7 +5,9 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from .models import Question, Answer, User
 from django.views.decorators.http import require_GET
-from .forms import AskForm, AnswerForm
+from .forms import AskForm, AnswerForm, LoginForm, SignupForm
+from django.contrib.auth import authenticate, login, logout
+from django.core.urlresolvers import reverse
 
 
 def test(request, *args, **kwargs):
@@ -55,7 +57,8 @@ def question(request, id):
         form = AnswerForm(request.POST)
         if form.is_valid():
             msg = 'Ваш ответ принят'
-            form.save()
+            form._user = request.user
+            _ = form.save()
             url = question.get_url()
             return HttpResponseRedirect(url)
     else:
@@ -66,6 +69,7 @@ def question(request, id):
             'answers': answers,
             'form': form
         })
+
 
 def ask(request):
     if request.method == "POST":
@@ -81,3 +85,42 @@ def ask(request):
         'title': 'Задать вопрос',
         'form': form,
     })
+
+
+def log_in(request):
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                if user.is_active:
+                    login(request, user)
+            return HttpResponseRedirect(reverse('index'))
+
+
+def log_out(request):
+    if request.user is not None:
+        logout(request)
+    return HttpResponseRedirect(reverse('index'))
+
+
+def signup(request):
+    if request.method == 'POST':
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            username = form.cleaned_data['username']
+            password = form.raw_passwrd
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                if user.is_active:
+                    login(request, user)
+            return HttpResponseRedirect(reverse('index'))
+        else:
+            form = SignupForm()
+        return render(request, 'signup.html', {
+            'title': 'Регистрация пользователя',
+            'form': form,
+        })
